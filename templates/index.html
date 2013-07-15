@@ -1,0 +1,30 @@
+<!doctype html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<style type="text/css">
+	@import url('{{ url_for('static', filename='style.css') }}');
+</style>
+<title>NiceGameTV mobile page</title>
+<body>
+	<div>
+		<b>NiceGameTV mobile page</b>
+	</div>
+	<div>
+		{% if user %}
+		<p>{{ user.nick }} / <a href="{{ url_for('logout') }}">Logout</a></p>
+		<p><a href="{{ url_for('new') }}">Post new article</a></p>
+		{% else %}
+		<form method="post" action="{{ url_for('login') }}">
+			<input type="text" name="username" style="width: 95%" />
+			<input type="password" name="password" style="width: 95%" />
+			<input type="submit" value="Login" />
+		</form>
+		{% endif %}
+	</div>
+	<div>
+	</div>
+	{% for item in items %}
+	<div style="background-color: yellow;">
+		<a href="{{ item.url }}">{{ item.name }}</a> by {{ item.author }}
+	</div>
+	{% endfor %}
+</body>

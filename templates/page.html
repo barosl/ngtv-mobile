@@ -1,0 +1,40 @@
+<!doctype html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<style type="text/css">
+	@import url('{{ url_for('static', filename='style.css') }}');
+</style>
+<title>NiceGameTV mobile page</title>
+<body>
+	<div>
+		<a href="{{ url_for('index') }}">List</a>
+	</div>
+	<div>
+		{{ name }}
+	</div>
+	<div>
+		by {{ author }}
+	</div>
+	<hr />
+	<div>
+		{{ body | safe }}
+	</div>
+	<hr />
+	<div>
+		<b>Comments:</b>
+	</div>
+	{% for comm in comms %}
+	<div>
+		<p><b>{{ comm.author }}</b></p>
+		{{ comm.body | safe }}
+	</div>
+	{% endfor %}
+
+	{% if user %}
+	<hr />
+	<p>Write new comment:</p>
+	<form method="post" action="{{ url_for('new_comm', page_id=page_id) }}">
+		<textarea name="body" style="width: 95%; height: 100px;"></textarea>
+		<input type="submit" value="Save" />
+	</form>
+	{% endif %}
+</body>
