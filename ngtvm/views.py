@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-from flask import Flask
-app = Flask(__name__, static_url_path='')
-
+from . import app
 from flask import render_template, request, url_for, session, redirect
 import requests
 import re
@@ -131,9 +129,3 @@ def index():
 def logout():
 	session.pop('php_sess_id', None)
 	return redirect(url_for('index'))
-
-app.secret_key = 'hgrlahglaehgilaheilahelghaelgahglaheglageaeglhaeage'
-
-if __name__ == '__main__':
-	app.debug = True
-	app.run()

@@ -1,9 +1,10 @@
 #!/bin/sh
 
 DIR=~barosl/dev/ngtv-m
-APP=main
+APP=ngtvm
 PORT=7001
 
 VENV=~barosl/box/.sys/py
+CFG_DIR=~barosl/dev/cfgs
 
-cd $DIR && exec $VENV/bin/gunicorn -b 127.0.0.1:$PORT $APP:app
+cd $DIR && APP_CFG=$CFG_DIR/$APP.py exec $VENV/bin/gunicorn -b 127.0.0.1:$PORT $APP:app
