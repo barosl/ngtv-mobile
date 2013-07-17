@@ -8,6 +8,11 @@ import re
 def err(msg):
 	return render_template('err.html', msg=msg)
 
+def req_with_sess():
+	sess = requests.Session()
+	if 'php_sess_id' in session: sess.cookies['PHPSESSID'] = session['php_sess_id']
+	return sess
+
 @app.route('/login/', methods=['POST'])
 def login():
 	username = request.form['username']
@@ -25,11 +30,7 @@ def login():
 
 @app.route('/page/<int:page_id>')
 def page(page_id):
-	cookies = {}
-	if 'php_sess_id' in session:
-		cookies['PHPSESSID'] = session['php_sess_id']
-
-	res = requests.get('http://www.nicegame.tv/board/bbs/view/1/7/-/-/%d/0/' % page_id, cookies=cookies)
+	res = req_with_sess().get('http://www.nicegame.tv/board/bbs/view/1/7/-/-/%d/0/' % page_id)
 	res.encoding = 'utf-8'
 
 	try:
@@ -69,13 +70,9 @@ def page(page_id):
 @app.route('/new/', methods=['GET', 'POST'])
 def new():
 	if request.method == 'POST':
-		cookies = {}
-		if 'php_sess_id' in session:
-			cookies['PHPSESSID'] = session['php_sess_id']
-
 		name = request.form['name']
 		body = request.form['body']
-		res = requests.post('http://www.nicegame.tv/board/bbs/write/1/7/', data={'title': name, 'body_text': body}, cookies=cookies)
+		res = req_with_sess().post('http://www.nicegame.tv/board/bbs/write/1/7/', data={'title': name, 'body_text': body})
 		res.encoding = 'utf-8'
 
 		page_id = int(re.search(u'<div id="bbs_report_(.*?)"', res.text).group(1))
@@ -87,23 +84,16 @@ def new():
 
 @app.route('/page/<int:page_id>/new/', methods=['POST'])
 def new_comm(page_id):
-	cookies = {}
-	if 'php_sess_id' in session:
-		cookies['PHPSESSID'] = session['php_sess_id']
-
 	body = request.form['body']
 
-	res = requests.post('http://www.nicegame.tv/board/bbs/write_comment/1/7/-/-/%d' % page_id, data={'comment': body}, cookies=cookies)
+	res = req_with_sess().post('http://www.nicegame.tv/board/bbs/write_comment/1/7/-/-/%d' % page_id, data={'comment': body})
 	res.encoding = 'utf-8'
 
 	return redirect(url_for('page', page_id=page_id))
 
 @app.route('/')
 def index():
-	cookies = {}
-	if 'php_sess_id' in session:
-		cookies['PHPSESSID'] = session['php_sess_id']
-	res = requests.get('http://www.nicegame.tv/board/bbs/lists/1/7/', cookies=cookies)
+	res = req_with_sess().get('http://www.nicegame.tv/board/bbs/lists/1/7/')
 	res.encoding = 'utf-8'
 
 	try:
