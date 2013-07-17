@@ -5,17 +5,22 @@ from flask import render_template, request, url_for, session, redirect
 import requests
 import re
 
+def err(msg):
+	return render_template('err.html', msg=msg)
+
 @app.route('/login/', methods=['POST'])
 def login():
 	username = request.form['username']
 	password = request.form['password']
-	sess = requests.Session()
-	res = sess.post('http://www.nicegame.tv/users/member/login/', data={'userid': username, 'passwd': password})
+
+	res = requests.post('http://www.nicegame.tv/users/member/login/', data={'userid': username, 'passwd': password})
 	res.encoding = 'utf-8'
+
 	if u'empty_login_alert_area' in res.text:
-		return 'Login failed.\n'
+		return err('Login failed.'), 401
 
 	session['php_sess_id'] = res.cookies['PHPSESSID']
+
 	return redirect(url_for('index'))
 
 @app.route('/page/<int:page_id>')
