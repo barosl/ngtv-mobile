@@ -4,6 +4,7 @@ from . import app
 from flask import render_template, request, url_for, session, redirect
 import requests
 import re
+import lxml.etree, lxml.html
 
 def err(msg):
 	return render_template('err.html', msg=msg)
@@ -13,10 +14,13 @@ def req_with_sess():
 	if 'php_sess_id' in session: sess.cookies['PHPSESSID'] = session['php_sess_id']
 	return sess
 
-def parse_user(res):
-	try: user = {'nick': re.search(ur'<div class="name_text_area">\s*<b>(.*?)</b>', res.text).group(1)}
-	except AttributeError: user = None
+def parse_user(tree):
+	try: user = {'nick': tree.cssselect('div.name_text_area b')[0].text_content().strip()}
+	except IndexError: user = None
 	return user
+
+def inner_html(tree):
+	return (tree.text or u'') + u''.join(lxml.etree.tostring(el, encoding=unicode, method='html') for el in tree)
 
 @app.route('/login/', methods=['POST'])
 def login():
@@ -38,30 +42,26 @@ def page(page_id):
 	res = req_with_sess().get('http://www.nicegame.tv/board/bbs/view/1/7/-/-/%d/0/' % page_id)
 	res.encoding = 'utf-8'
 
-	name = re.search(u'<th class="view_title">(.*?)</th>', res.text).group(1)
-	body = re.search(u'(?s)<td colspan="2" class="view_content">(.*?)</td>', res.text).group(1)
-	body = body.replace('<img src="/', '<img style="width: 100%;" src="http://www.nicegame.tv/')
-	author = re.search(u'(?s)<th class="view_auther">.*?>(.*?)</th>', res.text).group(1)
+	tree = lxml.html.fromstring(res.text)
 
-	rows = re.findall(u'(?s)<td class="comment_text_cell">(.*?)</td>', res.text)
-	comms = []
-	for row in rows:
-		mat = re.search(u'(?s)<p class="comment_nick">(.*?) <span.*?<p class="comment_text">(.*?)<ul', row)
-		comm_author, comm_body = mat.groups()
+	body_el = tree.cssselect('td.view_content')[0]
 
-		comm_body = re.sub(u'<img src="/images/board/btn.comment_delete.png".*?>', u'', comm_body)
+	for img in body_el.cssselect('img'):
+		img.attrib.pop('onload', None)
+		img.set('src', 'http://www.nicegame.tv'+img.get('src'))
+		img.set('style', 'width: 100%;')
 
-		comms.append({
-			'author': comm_author,
-			'body': comm_body,
-		})
+	comms = [{
+		'author': row[0].text.strip(),
+		'body': inner_html(row[1]).strip(),
+	} for row in tree.cssselect('td.comment_text_cell')]
 
 	vals = {
-		'name': name,
-		'body': body,
-		'author': author,
+		'name': tree.cssselect('th.view_title')[0].text_content().strip(),
+		'body': inner_html(body_el).strip(),
+		'author': tree.cssselect('th.view_auther')[0].text_content().strip(),
 		'comms': comms,
-		'user': parse_user(res),
+		'user': parse_user(tree),
 		'page_id': page_id,
 	}
 
@@ -96,21 +96,17 @@ def index():
 	res = req_with_sess().get('http://www.nicegame.tv/board/bbs/lists/1/7/')
 	res.encoding = 'utf-8'
 
-	rows = re.findall(u'(?s)<tr class="">(.*?)</tr>', res.text)
-	items = []
-	for row in rows:
-		mat = re.search(u'(?s)<a href="(.*?)".*?>(.*?)</a>.*?<td>(.*?)</td>', row)
-		url, name, author = mat.groups()
-		url = url_for('page', page_id=int(re.search(u'/-/([0-9]+)/', url).group(1)))
-		items.append({
-			'url': url,
-			'name': name,
-			'author': author,
-		})
+	tree = lxml.html.fromstring(res.text)
+
+	items = [{
+		'url': url_for('page', page_id=int(row[0].text_content().strip())),
+		'name': row[1].text_content().strip(),
+		'author': row[2].text_content().strip(),
+	} for row in tree.cssselect('table.board_list_table tbody tr:not(.list_notice)')]
 
 	vals = {
 		'items': items,
-		'user': parse_user(res),
+		'user': parse_user(tree),
 	}
 
 	return render_template('index.html', **vals)
