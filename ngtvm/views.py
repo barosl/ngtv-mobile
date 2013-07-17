@@ -72,10 +72,10 @@ def new():
 	if request.method == 'POST':
 		name = request.form['name']
 		body = request.form['body']
-		res = req_with_sess().post('http://www.nicegame.tv/board/bbs/write/1/7/', data={'title': name, 'body_text': body})
-		res.encoding = 'utf-8'
 
-		page_id = int(re.search(u'<div id="bbs_report_(.*?)"', res.text).group(1))
+		res = req_with_sess().post('http://www.nicegame.tv/board/bbs/write/1/7/', data={'title': name, 'body_text': body})
+		page_id = int(re.search(u'([0-9]+)$', res.url).group(1))
+
 		return redirect(url_for('page', page_id=page_id))
 
 	vals = {}
