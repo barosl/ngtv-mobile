@@ -24,7 +24,7 @@
 	</div>
 	{% for item in items %}
 	<div style="background-color: yellow;">
-		<a href="{{ item.url }}">{{ item.name }}</a> by {{ item.author }}
+		<a href="{{ item.url }}">{{ item.name }}</a> ({{ item.votes }} / {{ item.views }}) by {{ item.author }} at {{ item.date }}
 	</div>
 	{% endfor %}
 </body>

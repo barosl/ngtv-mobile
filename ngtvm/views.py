@@ -56,6 +56,8 @@ def page(page_id):
 		'body': inner_html(row[1]).strip(),
 	} for row in tree.cssselect('td.comment_text_cell')]
 
+	num_els = tree.cssselect('th.view_opt span.num_font')
+
 	vals = {
 		'name': tree.cssselect('th.view_title')[0].text_content().strip(),
 		'body': inner_html(body_el).strip(),
@@ -63,6 +65,9 @@ def page(page_id):
 		'comms': comms,
 		'user': parse_user(tree),
 		'page_id': page_id,
+		'date': tree.cssselect('th.view_date')[0].text_content().strip(),
+		'views': int(num_els[0].text_content().strip()),
+		'votes': int(num_els[1].text_content().strip()),
 	}
 
 	return render_template('page.html', **vals)
@@ -102,6 +107,9 @@ def index():
 		'url': url_for('page', page_id=int(row[0].text_content().strip())),
 		'name': row[1].text_content().strip(),
 		'author': row[2].text_content().strip(),
+		'votes': int(row[3].text_content().strip()),
+		'views': int(row[4].text_content().strip()),
+		'date': row[5].text_content().strip(),
 	} for row in tree.cssselect('table.board_list_table tbody tr:not(.list_notice)')]
 
 	vals = {
