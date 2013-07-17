@@ -54,7 +54,8 @@ def page(page_id):
 	comms = [{
 		'author': row[0].text.strip(),
 		'body': inner_html(row[1]).strip(),
-	} for row in tree.cssselect('td.comment_text_cell')]
+		'depth': 'reply' in row[1].get('class'),
+	} for row in tree.xpath('//p[@class="comment_nick"]/..')]
 
 	num_els = tree.cssselect('th.view_opt span.num_font')
 

@@ -23,10 +23,18 @@
 		<b>Comments:</b>
 	</div>
 	{% for comm in comms %}
-	<div>
-		<p><b>{{ comm.author }}</b></p>
-		{{ comm.body | safe }}
-	</div>
+		{% if comm.depth %}
+			<div style="margin-left: 50px;">
+		{% endif %}
+
+		<div>
+			<p><b>{{ comm.author }}</b></p>
+			{{ comm.body | safe }}
+		</div>
+
+		{% if comm.depth %}
+			</div>
+		{% endif %}
 	{% endfor %}
 
 	{% if user %}
