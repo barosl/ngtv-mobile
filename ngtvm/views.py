@@ -113,5 +113,6 @@ def index():
 
 @app.route('/logout/')
 def logout():
+	req_with_sess().get('http://www.nicegame.tv/users/member/logout/')
 	session.pop('php_sess_id', None)
 	return redirect(url_for('index'))
