@@ -13,6 +13,11 @@ def req_with_sess():
 	if 'php_sess_id' in session: sess.cookies['PHPSESSID'] = session['php_sess_id']
 	return sess
 
+def parse_user(res):
+	try: user = {'nick': re.search(ur'<div class="name_text_area">\s*<b>(.*?)</b>', res.text).group(1)}
+	except AttributeError: user = None
+	return user
+
 @app.route('/login/', methods=['POST'])
 def login():
 	username = request.form['username']
@@ -32,11 +37,6 @@ def login():
 def page(page_id):
 	res = req_with_sess().get('http://www.nicegame.tv/board/bbs/view/1/7/-/-/%d/0/' % page_id)
 	res.encoding = 'utf-8'
-
-	try:
-		user_nick = re.search(u'(?s)<div class="name_text_area">.*?<b>(.*?)</b>', res.text).group(1)
-		user = {'nick': user_nick}
-	except AttributeError: user = None
 
 	name = re.search(u'<th class="view_title">(.*?)</th>', res.text).group(1)
 	body = re.search(u'(?s)<td colspan="2" class="view_content">(.*?)</td>', res.text).group(1)
@@ -61,7 +61,7 @@ def page(page_id):
 		'body': body,
 		'author': author,
 		'comms': comms,
-		'user': user,
+		'user': parse_user(res),
 		'page_id': page_id,
 	}
 
@@ -96,11 +96,6 @@ def index():
 	res = req_with_sess().get('http://www.nicegame.tv/board/bbs/lists/1/7/')
 	res.encoding = 'utf-8'
 
-	try:
-		user_nick = re.search(u'(?s)<div class="name_text_area">.*?<b>(.*?)</b>', res.text).group(1)
-		user = {'nick': user_nick}
-	except AttributeError: user = None
-
 	rows = re.findall(u'(?s)<tr class="">(.*?)</tr>', res.text)
 	items = []
 	for row in rows:
@@ -115,7 +110,7 @@ def index():
 
 	vals = {
 		'items': items,
-		'user': user,
+		'user': parse_user(res),
 	}
 
 	return render_template('index.html', **vals)
