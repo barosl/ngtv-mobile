@@ -5,7 +5,7 @@ APP=ngtvm
 PORT=7001
 
 VENV=~barosl/box/.sys/py
-CFG_DIR=~barosl/dev/cfgs
+CFG_DIR=~barosl/web/cfgs
 
 export APP_CFG=$CFG_DIR/$APP.py
 [ -e $APP_CFG ] || { echo 'Configuration file not found.'; exit 1; }
