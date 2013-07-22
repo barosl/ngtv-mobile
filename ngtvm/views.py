@@ -4,7 +4,7 @@ from . import app
 from flask import render_template, request, url_for, session, redirect
 import requests
 import re
-import lxml.etree, lxml.html
+import lxml.html
 
 def err(msg):
 	return render_template('err.html', msg=msg)
@@ -20,7 +20,7 @@ def parse_user(tree):
 	return user
 
 def inner_html(tree):
-	return (tree.text or u'') + u''.join(lxml.etree.tostring(el, encoding=unicode, method='html') for el in tree)
+	return (tree.text or u'') + u''.join(lxml.html.tostring(el, encoding=unicode) for el in tree)
 
 @app.route('/login/', methods=['POST'])
 def login():
