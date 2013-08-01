@@ -62,7 +62,7 @@ def page(page_id):
 	vals = {
 		'name': tree.cssselect('th.view_title')[0].text_content().strip(),
 		'body': inner_html(body_el).strip(),
-		'author': tree.cssselect('th.view_auther')[0].text_content().strip(),
+		'author': tree.cssselect('th.view_auther')[0].cssselect('li.usr_menu_header')[0].text_content().strip(),
 		'comms': comms,
 		'user': parse_user(tree),
 		'page_id': page_id,
@@ -107,7 +107,7 @@ def index():
 	items = [{
 		'url': url_for('page', page_id=int(row[0].text_content().strip())),
 		'name': row[1].text_content().strip(),
-		'author': row[2].text_content().strip(),
+		'author': row[2].cssselect('li.usr_menu_header')[0].text_content().strip(),
 		'votes': int(row[3].text_content().strip()),
 		'views': int(row[4].text_content().strip()),
 		'date': row[5].text_content().strip(),
