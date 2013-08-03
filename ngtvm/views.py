@@ -15,7 +15,11 @@ def req_with_sess():
 	return sess
 
 def parse_user(tree):
-	try: user = {'nick': tree.cssselect('div.name_text_area b')[0].text_content().strip()}
+	try:
+		user = {
+			'nick': tree.cssselect('div.name_text_area b')[0].text_content().strip(),
+			'msg_cnt': int(tree.cssselect('li.memo_s span.color_red')[0].text),
+		}
 	except IndexError: user = None
 	return user
 
@@ -125,3 +129,39 @@ def logout():
 	req_with_sess().get('http://www.nicegame.tv/users/member/logout/')
 	session.pop('php_sess_id', None)
 	return redirect(url_for('index'))
+
+@app.route('/msgs/')
+def msgs():
+	res = req_with_sess().get('http://www.nicegame.tv/memo/lists/')
+	res.encoding = 'utf-8'
+
+	tree = lxml.html.fromstring(res.text)
+
+	msgs = [{
+		'author': row[2].text_content().strip(),
+		'name': row[3].text_content().strip(),
+		'id': int(row[0].cssselect('input')[0].get('value')),
+		'unread': u'unread' in row[1].cssselect('img')[0].get('src'),
+		'date': row[4].text_content().strip(),
+	} for row in tree.cssselect('table.memo_list_table tbody tr')]
+
+	vals = {
+		'msgs': msgs,
+	}
+
+	return render_template('msgs.html', **vals)
+
+@app.route('/msg/<int:nid>')
+def msg(nid):
+	res = req_with_sess().get('http://www.nicegame.tv/memo/read_memo/{}/r'.format(nid))
+	res.encoding = 'utf-8'
+
+	tree = lxml.html.fromstring(res.text)
+
+	vals = {
+		'author': tree.cssselect('th.view_th_col_3')[0].text_content().strip(),
+		'body': tree.cssselect('table.memo_view_table tbody td')[0].text_content().strip(),
+		'date': tree.cssselect('th.view_th_col_5')[0].text_content().strip(),
+	}
+
+	return render_template('msg.html', **vals)

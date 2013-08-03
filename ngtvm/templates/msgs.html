@@ -1,0 +1,7 @@
+<!doctype html>
+<title>Private messages</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% for msg in msgs %}
+<p style="{% if msg.unread %}background-color: yellow;{% endif %}"><a href="{{ url_for('msg', nid=msg.id) }}">{{ msg.name }}</a> by {{ msg.author }} at {{ msg.date }}</p>
+{% endfor %}
