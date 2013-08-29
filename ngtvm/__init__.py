@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-DEBUG = True
 SECRET_KEY = 'development key'
 
 from flask import Flask
