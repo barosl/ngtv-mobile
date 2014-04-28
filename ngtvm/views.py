@@ -46,36 +46,35 @@ def login():
 
 @app.route('/page/<int:page_id>')
 def page(page_id):
-	res = req_with_sess().get('http://www.nicegame.tv/board/bbs/view/1/7/-/-/%d/0/' % page_id)
+	res = req_with_sess().get('http://nicegame.tv/community/view/%d/?ccode=1&bcode=7&page=1' % page_id)
 	res.encoding = 'utf-8'
 
 	tree = lxml.html.fromstring(res.text)
 
-	body_el = tree.cssselect('td.view_content')[0]
+	body_el = tree.cssselect('div.viewContent')[0]
 
 	for img in body_el.cssselect('img'):
 		img.attrib.pop('onload', None)
-		img.set('src', 'http://www.nicegame.tv'+img.get('src'))
 		img.set('style', 'width: 100%;')
 
 	comms = [{
-		'author': row[0].text.strip(),
-		'body': inner_html(row[1]).strip(),
-		'depth': 'reply' in row[1].get('class'),
-	} for row in tree.xpath('//p[@class="comment_nick"]/..')]
+		'author': row[1].cssselect('strong')[0].text.strip(),
+		'body': row[1][0].tail.strip(),
+		'depth': 'cmtReply' in row.get('class'),
+	} for row in tree.cssselect('li.commentLI')]
 
-	num_els = tree.cssselect('th.view_opt span.num_font')
+	nums = re.findall('[0-9]+', tree.cssselect('div.viewInfo2 span.infoRight')[0].text_content())
 
 	vals = {
-		'name': tree.cssselect('th.view_title')[0].text_content().strip(),
+		'name': tree.cssselect('div.viewInfo1')[0].cssselect('span.infoLeft')[0].text_content().strip(),
 		'body': inner_html(body_el).strip(),
-		'author': tree.cssselect('th.view_auther')[0].cssselect('li.usr_menu_header')[0].text_content().strip(),
+		'author': tree.cssselect('div.viewInfo2')[0].cssselect('span.infoLeft')[0].text_content().strip(),
 		'comms': comms,
 		'user': parse_user(tree),
 		'page_id': page_id,
-		'date': tree.cssselect('th.view_date')[0].text_content().strip(),
-		'views': int(num_els[0].text_content().strip()),
-		'votes': int(num_els[1].text_content().strip()),
+		'date': tree.cssselect('div.viewInfo1')[0].cssselect('span.infoRight')[0].text_content().strip(),
+		'views': nums[0],
+		'votes': nums[1],
 	}
 
 	return render_template('page.html', **vals)
@@ -106,7 +105,7 @@ def new_comm(page_id):
 
 @app.route('/')
 def index():
-	res = req_with_sess().get('http://www.nicegame.tv/board/bbs/lists/1/7/')
+	res = req_with_sess().get('http://nicegame.tv/community/bbs_list/?ccode=1&bcode=7')
 	res.encoding = 'utf-8'
 
 	tree = lxml.html.fromstring(res.text)
@@ -114,11 +113,11 @@ def index():
 	items = [{
 		'url': url_for('page', page_id=int(row[0].text_content().strip())),
 		'name': row[1].text_content().strip(),
-		'author': row[2].cssselect('li.usr_menu_header')[0].text_content().strip(),
+		'author': row[2].text_content().strip(),
 		'votes': int(row[3].text_content().strip()),
 		'views': int(row[4].text_content().strip()),
 		'date': row[5].text_content().strip(),
-	} for row in tree.cssselect('table.board_list_table tbody tr:not(.list_notice)')]
+	} for row in tree.cssselect('div.bbs table tbody tr:not(.noticeList)')]
 
 	vals = {
 		'items': items,
