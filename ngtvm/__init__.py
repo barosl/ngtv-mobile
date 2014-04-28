@@ -8,4 +8,4 @@ app = Flask(__name__)
 app.config.from_object(__name__)
 app.config.from_envvar('APP_CFG', silent=True)
 
-import views
+from . import views

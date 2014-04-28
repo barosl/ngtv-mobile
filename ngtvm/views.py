@@ -24,6 +24,9 @@ def parse_user(tree):
 	return user
 
 def inner_html(tree):
+	try: unicode
+	except NameError: unicode = str
+
 	return (tree.text or u'') + u''.join(lxml.html.tostring(el, encoding=unicode) for el in tree)
 
 @app.route('/login/', methods=['POST'])
